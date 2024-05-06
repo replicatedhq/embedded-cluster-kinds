@@ -81,6 +81,13 @@ type InstallationSpec struct {
 	BinaryName string `json:"binaryName,omitempty"`
 	// LicenseInfo holds information about the license used to install the cluster.
 	LicenseInfo *LicenseInfo `json:"licenseInfo,omitempty"`
+	// UnknownConfigProperties is used when migrating between two different versions
+	// of the CRD, eg: on v2 of the CRD a new field has been introduced, the cluster
+	// does not know yet about this new field as it only knowns about the v1 version.
+	// To avoid losing information the v2 to v1 diff is stored here as a JSON merge
+	// patch marshaled as YAML. Look at this field as a patch that will be applied
+	// on top of the Config field above before reconciling.
+	UnknownConfigProperties string `json:"unknownConfigProperties,omitempty"`
 }
 
 // InstallationStatus defines the observed state of Installation
