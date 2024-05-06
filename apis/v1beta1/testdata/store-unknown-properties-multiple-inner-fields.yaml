@@ -1,0 +1,25 @@
+configSpec:
+  version: 1.29.4+ec.3
+  roles:
+    controller:
+      name: test
+      description: role description
+      labels:
+        label: value
+newConfigSpec: |
+  version: 1.29.4+ec.3
+  newObject:
+    newField: value
+    newObject:
+      newField: value2
+  roles:
+    controller:
+      name: test
+      description: role description
+      labels:
+        label: value
+expected:
+  newObject:
+    newField: value
+    newObject:
+      newField: value2

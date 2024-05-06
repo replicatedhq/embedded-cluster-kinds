@@ -1,0 +1,47 @@
+configSpec:
+  version: 1.29.4+ec.3
+  extensions:
+    helm:
+      charts:
+      - name: test
+        version: 1.0.0
+  roles:
+    controller:
+      name: test
+      description: role description
+      labels:
+        label: value
+unknownConfigProperties: |
+  roles:
+    controller:
+      labels:
+        label: value
+        label2: value
+    custom:
+    - name: custom1
+      labels:
+        custom: custom1
+    - name: custom2
+      labels:
+        custom: custom2
+expected:
+  version: 1.29.4+ec.3
+  roles:
+    controller:
+      name: test
+      description: role description
+      labels:
+        label: value
+        label2: value
+    custom:
+    - name: custom1
+      labels:
+        custom: custom1
+    - name: custom2
+      labels:
+        custom: custom2
+  extensions:
+    helm:
+      charts:
+      - name: test
+        version: 1.0.0

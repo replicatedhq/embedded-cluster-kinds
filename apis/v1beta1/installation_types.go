@@ -17,7 +17,11 @@ limitations under the License.
 package v1beta1
 
 import (
+	"fmt"
+
+	jsonpatch "github.com/evanphx/json-patch"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/yaml"
 )
 
 // What follows is a list of all valid states for an Installation object.
@@ -88,6 +92,76 @@ type InstallationSpec struct {
 	// patch marshaled as YAML. Look at this field as a patch that will be applied
 	// on top of the Config field above before reconciling.
 	UnknownConfigProperties string `json:"unknownConfigProperties,omitempty"`
+}
+
+// StoreUnknownConfigProperties creates a patch between .Config and the provided yaml
+// string. Stores the patch on the UnknownConfigProperties field. If both are equal
+// then the field is set to an empty string.
+func (i *InstallationSpec) StoreUnknownConfigProperties(v2 string) error {
+	v1yaml, err := yaml.Marshal(i.Config)
+	if err != nil {
+		return fmt.Errorf("failed to marshall current config to yaml: %w", err)
+	}
+	v1json, err := yaml.YAMLToJSON(v1yaml)
+	if err != nil {
+		return fmt.Errorf("failed to current config to json: %w", err)
+	}
+	v2json, err := yaml.YAMLToJSON([]byte(v2))
+	if err != nil {
+		return fmt.Errorf("failed to convert new config to json: %w", err)
+	}
+	if jsonpatch.Equal(v1json, v2json) {
+		i.UnknownConfigProperties = ""
+		return nil
+	}
+	patch, err := jsonpatch.CreateMergePatch(v1json, v2json)
+	if err != nil {
+		return fmt.Errorf("failed to create patch between configs: %w", err)
+	}
+	patchYAML, err := yaml.JSONToYAML(patch)
+	if err != nil {
+		return fmt.Errorf("failed to convert config patch to yaml: %w", err)
+	}
+	i.UnknownConfigProperties = string(patchYAML)
+	return nil
+}
+
+// ApplyUnknownConfigProperties applies the unknown config properties to the
+// Config field of the Installation object. This function may reset the content
+// of the Config property to include the now known fields.
+func (i *InstallationSpec) ApplyUnknownConfigProperties() error {
+	if i.UnknownConfigProperties == "" {
+		return nil
+	}
+	originalYAML, err := yaml.Marshal(i.Config)
+	if err != nil {
+		return fmt.Errorf("failed to marshal original config: %w", err)
+	}
+	original, err := yaml.YAMLToJSON(originalYAML)
+	if err != nil {
+		return fmt.Errorf("failed to convert original config to json: %w", err)
+	}
+	patch, err := yaml.YAMLToJSON([]byte(i.UnknownConfigProperties))
+	if err != nil {
+		return fmt.Errorf("failed to convert patch to JSON: %w", err)
+	}
+	result, err := jsonpatch.MergePatch(original, patch)
+	if err != nil {
+		return fmt.Errorf("failed to apply patch: %w", err)
+	}
+	if jsonpatch.Equal(original, result) {
+		return nil
+	}
+	asyaml, err := yaml.JSONToYAML(result)
+	if err != nil {
+		return fmt.Errorf("failed to convert JSON to YAML: %w", err)
+	}
+	var config ConfigSpec
+	if err := yaml.Unmarshal(asyaml, &config); err != nil {
+		return fmt.Errorf("failed to unmarshal patched config: %w", err)
+	}
+	i.Config = &config
+	return nil
 }
 
 // InstallationStatus defines the observed state of Installation

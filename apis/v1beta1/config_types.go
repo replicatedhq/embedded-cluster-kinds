@@ -86,15 +86,18 @@ type Extensions struct {
 
 // ConfigSpec defines the desired state of Config
 type ConfigSpec struct {
-	Version              string               `json:"version,omitempty"`
-	Roles                Roles                `json:"roles,omitempty"`
-	UnsupportedOverrides UnsupportedOverrides `json:"unsupportedOverrides,omitempty"`
-	Extensions           Extensions           `json:"extensions,omitempty"`
+	Version              string                `json:"version,omitempty"`
+	Roles                Roles                 `json:"roles,omitempty"`
+	UnsupportedOverrides *UnsupportedOverrides `json:"unsupportedOverrides,omitempty"`
+	Extensions           *Extensions           `json:"extensions,omitempty"`
 }
 
 // OverrideForBuiltIn returns the override for the built-in extension with the
 // given name. If no override is found an empty string is returned.
 func (c ConfigSpec) OverrideForBuiltIn(bi string) string {
+	if c.UnsupportedOverrides == nil {
+		return ""
+	}
 	for _, ext := range c.UnsupportedOverrides.BuiltInExtensions {
 		if ext.Name != bi {
 			continue

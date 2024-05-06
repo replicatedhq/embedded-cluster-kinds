@@ -1,0 +1,17 @@
+configSpec:
+  version: 1.29.4+ec.3
+  roles:
+    controller:
+      name: test
+      description: role description
+      labels:
+        label: value
+unknownConfigProperties: ""
+expected:
+  version: 1.29.4+ec.3
+  roles:
+    controller:
+      name: test
+      description: role description
+      labels:
+        label: value
