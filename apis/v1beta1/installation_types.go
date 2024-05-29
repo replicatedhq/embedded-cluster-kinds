@@ -20,6 +20,7 @@ import (
 	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
 )
@@ -154,14 +155,8 @@ func (s *InstallationStatus) SetState(state string, reason string, pendingCharts
 }
 
 // SetState sets the installation state and reason.
-func (s *InstallationStatus) SetCondition(condition metav1.Condition) {
-	for i, c := range s.Conditions {
-		if c.Type == condition.Type {
-			s.Conditions[i] = condition
-			return
-		}
-	}
-	s.Conditions = append(s.Conditions, condition)
+func (s *InstallationStatus) SetCondition(condition metav1.Condition) bool {
+	return meta.SetStatusCondition(&s.Conditions, condition)
 }
 
 func (s *InstallationStatus) GetKubernetesInstalled() bool {
