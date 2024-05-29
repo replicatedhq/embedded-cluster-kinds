@@ -136,6 +136,14 @@ type InstallationStatus struct {
 	Reason string `json:"reason,omitempty"`
 	// PendingCharts holds the list of charts that are being created or updated.
 	PendingCharts []string `json:"pendingCharts,omitempty"`
+
+	// Conditions is an array of current observed installation conditions.
+	// +listType=map
+	// +listMapKey=type
+	// +patchStrategy=merge
+	// +patchMergeKey=type
+	// +optional
+	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
 }
 
 // SetState sets the installation state and reason.
@@ -143,6 +151,17 @@ func (s *InstallationStatus) SetState(state string, reason string, pendingCharts
 	s.State = state
 	s.Reason = reason
 	s.PendingCharts = pendingCharts
+}
+
+// SetState sets the installation state and reason.
+func (s *InstallationStatus) SetCondition(condition metav1.Condition) {
+	for i, c := range s.Conditions {
+		if c.Type == condition.Type {
+			s.Conditions[i] = condition
+			return
+		}
+	}
+	s.Conditions = append(s.Conditions, condition)
 }
 
 func (s *InstallationStatus) GetKubernetesInstalled() bool {
