@@ -20,7 +20,6 @@ import (
 	"fmt"
 
 	jsonpatch "github.com/evanphx/json-patch"
-	k0sv1beta1 "github.com/k0sproject/k0s/pkg/apis/k0s/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8syaml "sigs.k8s.io/yaml"
 )
@@ -81,7 +80,7 @@ type Roles struct {
 }
 
 type Extensions struct {
-	Helm *k0sv1beta1.HelmExtensions `json:"helm,omitempty"`
+	Helm *HelmExtensions `json:"helm,omitempty"`
 }
 
 // ConfigSpec defines the desired state of Config
