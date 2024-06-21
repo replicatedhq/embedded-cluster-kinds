@@ -86,7 +86,7 @@ type Extensions struct {
 
 // ConfigSpec defines the desired state of Config
 type ConfigSpec struct {
-	Version              string               `json:"version,omitempty"`
+	Version              string               `json:"version"`
 	Roles                Roles                `json:"roles,omitempty"`
 	UnsupportedOverrides UnsupportedOverrides `json:"unsupportedOverrides,omitempty"`
 	Extensions           Extensions           `json:"extensions,omitempty"`
