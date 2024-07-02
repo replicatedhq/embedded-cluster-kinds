@@ -17,7 +17,9 @@ limitations under the License.
 package v1beta1
 
 import (
+	"encoding/json"
 	"fmt"
+	"time"
 
 	jsonpatch "github.com/evanphx/json-patch"
 	k0sv1beta1 "github.com/k0sproject/k0s/pkg/apis/k0s/v1beta1"
@@ -80,8 +82,59 @@ type Roles struct {
 	Custom     []NodeRole `json:"custom,omitempty"`
 }
 
+// Chart single helm addon
+type Chart struct {
+	Name      string `json:"name"`
+	ChartName string `json:"chartname"`
+	Version   string `json:"version"`
+	// +kubebuilder:validation:Optional
+	Values   string `json:"values"`
+	TargetNS string `json:"namespace"`
+	// Timeout specifies the timeout for how long to wait for the chart installation to finish.
+	// +kubebuilder:validation:Optional
+	Timeout time.Duration `json:"timeout"`
+	// +kubebuilder:validation:Optional
+	Order int `json:"order"`
+}
+
+// Helm contains helm extension settings
+type Helm struct {
+	// +kubebuilder:validation:Optional
+	ConcurrencyLevel int `json:"concurrencyLevel"`
+	// +kubebuilder:validation:Optional
+	Repositories k0sv1beta1.RepositoriesSettings `json:"repositories"`
+	// +kubebuilder:validation:Optional
+	Charts []Chart `json:"charts"`
+}
+
 type Extensions struct {
-	Helm *k0sv1beta1.HelmExtensions `json:"helm,omitempty"`
+	Helm *Helm `json:"helm,omitempty"`
+}
+
+func ConvertTo[T any](e Helm, t T) (T, error) {
+	j, err := json.Marshal(e)
+	if err != nil {
+		return t, fmt.Errorf("unable to convert extensions: %w", err)
+	}
+
+	if err = json.Unmarshal(j, t); err != nil {
+		return t, fmt.Errorf("unable to unmarshal to new type: %w", err)
+	}
+
+	return t, nil
+}
+
+func ConvertFrom[T any](e k0sv1beta1.HelmExtensions, t T) (T, error) {
+	j, err := json.Marshal(e)
+	if err != nil {
+		return t, fmt.Errorf("unable to convert extensions: %w", err)
+	}
+
+	if err = json.Unmarshal(j, t); err != nil {
+		return t, fmt.Errorf("unable to unmarshal to new type: %w", err)
+	}
+
+	return t, nil
 }
 
 // ConfigSpec defines the desired state of Config
